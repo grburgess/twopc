@@ -1,0 +1,2 @@
+include versioneer.py
+include twopc/_version.py
