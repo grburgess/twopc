@@ -4,14 +4,12 @@
    contain the root `toctree` directive.
 
 Welcome to twopc's documentation!
-====================================
+=================================
 
 .. toctree::
    :maxdepth: 5
 	      
    notebooks/docs.ipynb
-
-   
 
    
 Indices and tables

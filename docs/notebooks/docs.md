@@ -27,16 +27,25 @@ from threeML.utils.OGIP.response import OGIPResponse
 from threeML import silence_warnings, DispersionSpectrumLike, display_spectrum_model_counts
 from threeML import set_threeML_style, BayesianAnalysis, DataList, threeML_config
 from astromodels import Blackbody, Powerlaw, PointSource, Model, Log_normal
-silence_warnings()
-%matplotlib notebook
-
-set_threeML_style()
-
 
 threeML_config.plugins.ogip.data_plot.counts_color = "#FCE902"
 threeML_config.plugins.ogip.data_plot.background_color = "#CC0000"
 
 ```
+
+
+```python nbsphinx="hidden"
+from jupyterthemes import jtplot
+%matplotlib inline
+jtplot.style(context="talk", fscale=1, ticks=True, grid=False)
+
+silence_warnings()
+
+set_threeML_style()
+
+```
+
+
 
 ## Generate some synthetic data
 
