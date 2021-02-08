@@ -128,3 +128,9 @@ dmypy.json
 # Pyre type checker
 .pyre/
 *.ipynb
+/docs/.DS_Store
+/docs/Makefile
+/docs/make.bat
+/docs/notebooks/my_ppc.h5
+/.dir-locals.el
+/.DS_Store
