@@ -61,24 +61,24 @@ extensions = [
     'nbsphinx', 'sphinx.ext.autodoc', 'sphinx.ext.mathjax',
     'sphinx.ext.viewcode', 'sphinx.ext.autodoc', 'sphinx.ext.githubpages',
     'sphinx.ext.napoleon',
-    'rtds_action'
+    #'rtds_action'
 ]
 
 napoleon_google_docstring = True
 napoleon_use_param = False
 
 # The name of your GitHub repository
-rtds_action_github_repo = "grburgess/twopc"
+# rtds_action_github_repo = "grburgess/twopc"
 
-# # The path where the artifact should be extracted
-# # Note: this is relative to the conf.py file!
-rtds_action_path = "notebooks"
+# # # The path where the artifact should be extracted
+# # # Note: this is relative to the conf.py file!
+# rtds_action_path = "notebooks"
 
-# # The "prefix" used in the `upload-artifact` step of the action
-rtds_action_artifact_prefix = "notebooks-for-"
+# # # The "prefix" used in the `upload-artifact` step of the action
+# rtds_action_artifact_prefix = "notebooks-for-"
 
-# # A GitHub personal access token is required, more info below
-rtds_action_github_token = os.environ["GITHUB_TOKEN"]
+# # # A GitHub personal access token is required, more info below
+# rtds_action_github_token = os.environ["GITHUB_TOKEN"]
 
 # Add any paths that contain templates here, relative to this directory.
 #templates_path = ['_templates']

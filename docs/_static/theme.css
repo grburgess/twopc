@@ -41,6 +41,14 @@
    .wy-nav-content .highlight .kn {
        color: #7F0000; /* dark green */  
    }
+
+/* RST content background color */
+body.scroll-up,
+body.scroll-down,
+.wy-nav-content {
+  background: #D2D2D2  ;
+}
+
    
    .wy-nav-content .highlight .nn,
    .wy-nav-content a.fa,
