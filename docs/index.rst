@@ -5,6 +5,9 @@
 
 Welcome to twopc's documentation!
 =================================
+A simple library to generate posterior predictive checks from 3ML bayesian fits to spectra.
+Ypu should do this because if feels good and is the best way to know if your data match your modeling.
+
 
 .. toctree::
    :maxdepth: 5
