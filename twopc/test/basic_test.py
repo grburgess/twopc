@@ -1,14 +1,13 @@
 import numpy as np
 from astromodels import Blackbody, Log_normal, Model, PointSource, Powerlaw
 from threeML import (BayesianAnalysis, DataList, DispersionSpectrumLike,
-                     display_spectrum_model_counts, set_threeML_style,
-                     silence_warnings)
+                     display_spectrum_model_counts
+                     debug_mode)
 from threeML.io.package_data import get_path_of_data_file
 from threeML.utils.OGIP.response import OGIPResponse
 from twopc import compute_ppc
 
-
-silence_warnings()
+debug_mode()
 
 
 def test_all():
