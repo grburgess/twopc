@@ -20,6 +20,10 @@ jobs:
           pip install black
           pip install --upgrade numpy ipython jupyter cython astropy astromodels
           pip install jupytext jupyterthemes
+          git clone https://github.com/threeML/threeML
+          cd threeML
+          python setup.py install
+          cd ../
           python setup.py install
           
           
