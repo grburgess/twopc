@@ -1,10 +1,10 @@
 import numpy as np
 from astromodels import Blackbody, Log_normal, Model, PointSource, Powerlaw
 from threeML import (BayesianAnalysis, DataList, DispersionSpectrumLike,
-                     display_spectrum_model_counts
-                     debug_mode)
+                     debug_mode, display_spectrum_model_counts)
 from threeML.io.package_data import get_path_of_data_file
 from threeML.utils.OGIP.response import OGIPResponse
+
 from twopc import compute_ppc
 
 debug_mode()
@@ -32,29 +32,19 @@ def test_all():
 
     model = Model(ps)
 
-
     ba = BayesianAnalysis(model, DataList(spectrum_generator))
-
 
     ba.set_sampler()
 
-
     ba.sample(quiet=True)
 
-
     ppc = compute_ppc(ba,
-                  ba.results,
-                  n_sims=500, 
-                  file_name="my_ppc.h5",
-                  overwrite=True,
-                  return_ppc=True)
+                      ba.results,
+                      n_sims=500,
+                      file_name="my_ppc.h5",
+                      overwrite=True,
+                      return_ppc=True)
 
+    ppc.fake.plot(bkg_subtract=True)
 
-    ppc.fake.plot(bkg_subtract=True);
-
-
-
-    ppc.fake.plot(bkg_subtract=False);
-
-
-
+    ppc.fake.plot(bkg_subtract=False)
