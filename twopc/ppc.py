@@ -6,8 +6,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from astromodels import clone_model
 from threeML import BayesianAnalysis, DataList
-from threeML.io.logging import silence_console_log
 from threeML.analysis_results import BayesianResults
+from threeML.io.logging import silence_console_log
+from threeML.utils.progress_bar import tqdm
 
 
 def compute_ppc(analysis: BayesianAnalysis,
@@ -17,19 +18,19 @@ def compute_ppc(analysis: BayesianAnalysis,
                 overwrite: bool = False,
                 return_ppc: bool = False
                 ) -> Union["PPC", None]:
-    """ 
+    """
     Compute a posterior predictive check from a 3ML DispersionLike
     Plugin. The resulting posterior data simulations are stored
     in an HDF5 file which can be read by the PPC class
 
-    :param analysis: 3ML bayesian analysis object 
+    :param analysis: 3ML bayesian analysis object
     :param result: 3ML analysis result
     :param n_sims: the number of posterior simulations to create
     :param file_name: the filename to save to
     :param overwrite: to overwrite an existsing file
     :param return_ppc: if true, PPC object will be return directy
     :returns: None
-    :rtype: 
+    :rtype:
 
     """
 
@@ -68,9 +69,9 @@ def compute_ppc(analysis: BayesianAnalysis,
 
         # for each posterior sample
 
-        with silence_console_log(and_progress_bars =False):
-            
-            for j, choice in enumerate(choices):
+        with silence_console_log(and_progress_bars=False):
+
+            for j, choice in enumerate(tqdm(choices, desc="sampling posterior")):
 
                 # get the parameters of the choice
 
@@ -115,8 +116,8 @@ class PPC(object):
 
 
         :param filename: the file name to read
-        :returns: 
-        :rtype: 
+        :returns:
+        :rtype:
 >
         """
 
@@ -164,12 +165,12 @@ class PPC(object):
             self._dets = dets
             self._filename = file_name
 
-    @property
+    @ property
     def n_sims(self) -> int:
 
         return self._n_sims
 
-    @property
+    @ property
     def detectors(self) -> List[str]:
         return self._det_list
 
@@ -187,16 +188,16 @@ class PPCDetector(object):
         """
         This is simply a container object that stores the observed and PPC information of each detector for examination
 
-        :param name: 
-        :param obs_counts: 
-        :param obs_background: 
-        :param mask: 
-        :param ebounds: 
-        :param exposure: 
-        :param ppc_counts: 
-        :param ppc_background: 
-        :returns: 
-        :rtype: 
+        :param name:
+        :param obs_counts:
+        :param obs_background:
+        :param mask:
+        :param ebounds:
+        :param exposure:
+        :param ppc_counts:
+        :param ppc_background:
+        :returns:
+        :rtype:
 
         """
 
@@ -213,39 +214,39 @@ class PPCDetector(object):
         self._max_energy = ebounds.max()
         self._min_energy = ebounds.min()
 
-    @property
+    @ property
     def name(self) -> str:
         return self._name
 
-    @property
+    @ property
     def obs_counts(self) -> np.ndarray:
         return self._obs_counts
 
-    @property
+    @ property
     def obs_background(self) -> np.ndarray:
         return self._obs_background
 
-    @property
+    @ property
     def mask(self) -> np.ndarray:
         return self._mask
 
-    @property
+    @ property
     def ebounds(self) -> np.ndarray:
         return self._ebounds
 
-    @property
+    @ property
     def channel_width(self) -> np.ndarray:
         return self._channel_width
 
-    @property
+    @ property
     def exposure(self) -> float:
         return self._exposure
 
-    @property
+    @ property
     def ppc_counts(self) -> np.ndarray:
         return self._ppc_counts
 
-    @property
+    @ property
     def ppc_background(self) -> np.ndarray:
         return self._ppc_background
 
@@ -296,18 +297,18 @@ class PPCDetector(object):
              ):
         """FIXME! briefly describe function
 
-        :param bkg_subtract: 
-        :param ax: 
-        :param levels: 
-        :param 75: 
-        :param 55]: 
-        :param colors: 
-        :param '#566573': 
-        :param '#17202A']: 
-        :param lc: 
-        :param lw: 
-        :returns: 
-        :rtype: 
+        :param bkg_subtract:
+        :param ax:
+        :param levels:
+        :param 75:
+        :param 55]:
+        :param colors:
+        :param '#566573':
+        :param '#17202A']:
+        :param lc:
+        :param lw:
+        :returns:
+        :rtype:
 
         """
 
@@ -357,7 +358,7 @@ class PPCDetector(object):
         else:
             true_rate = self._obs_counts / self._channel_width / self._exposure
 
-        #colors = [light,mid,dark]
+        # colors = [light,mid,dark]
 
         for j, (lo, hi) in enumerate(zip(ppc_low, ppc_high)):
 
