@@ -15,20 +15,33 @@ jupyter:
 
 # Creating PPC from GBM SpectrumLike fits
 
+A very useful way to check the quality of Bayesian fits is through posterior predicitve checks.
+We can create these with the machinery inside of 3ML for certain plugins (perhaps more in the future). 
+
+
+
 ```python
 import numpy as np
 from threeML.io.package_data import get_path_of_data_file
 from threeML.utils.OGIP.response import OGIPResponse
 from threeML import silence_warnings, DispersionSpectrumLike, display_spectrum_model_counts
-from threeML import set_threeML_style, BayesianAnalysis, DataList
+from threeML import set_threeML_style, BayesianAnalysis, DataList, threeML_config
 from astromodels import Blackbody, Powerlaw, PointSource, Model, Log_normal
 silence_warnings()
 %matplotlib notebook
 
 set_threeML_style()
+
+
+threeML_config.plugins.ogip.data_plot.counts_color = "#FCE902"
+threeML_config.plugins.ogip.data_plot.background_color = "#CC0000"
+
 ```
 
 ## Generate some synthetic data
+
+First, lets use 3ML to generate some fake data. Here we will have a background spectrum that is a power law and a source that is a black body.
+
 
 ```python
 # we will use a demo response
@@ -75,7 +88,15 @@ ba.sample(quiet=True)
 ```
 
 ```python
-fig = display_spectrum_model_counts(ba, show_background=True, source_only=False, min_rate=10)
+fig = display_spectrum_model_counts(ba,
+                                    data_color="#CC0000",
+                                    model_color="#FCE902",
+                                    background_color="k",
+                                    
+                                    
+                                    show_background=True,
+                                    source_only=False,
+                                    min_rate=10)
 ax = fig.get_axes()[0]
 
 ax.set_ylim(1e-3)
@@ -98,7 +119,7 @@ ppc = compute_ppc(ba,
 ```
 
 ```python
-ppc.fake.plot(bkg_subtract=True);
+ppc.fake.plot(bkg_subtract=True,colors=["#FF1919","#CC0000","#7F0000"]);
 ```
 
 ```python
