@@ -43,6 +43,12 @@ silence_warnings()
 
 set_threeML_style()
 
+threeML_config.plugins.ogip.data_plot.counts_color = "#FCE902"
+threeML_config.plugins.ogip.data_plot.background_color = "#CC0000"
+
+
+threeML_config.plugins.ogip.fit_plot.background_mpl_kwargs = dict(ls="-", lw=.7)
+
 ```
 
 
@@ -128,7 +134,7 @@ ppc = compute_ppc(ba,
 ```
 
 ```python
-ppc.fake.plot(bkg_subtract=True,colors=["#FF1919","#CC0000","#7F0000"]);
+fig = ppc.fake.plot(bkg_subtract=True,colors=["#FF1919","#CC0000","#7F0000"]);
 ```
 
 ```python
