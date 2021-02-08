@@ -1,0 +1,72 @@
+    /* Vertical navigation
+   ==================================================== */
+       .wy-menu-vertical header,
+       .wy-menu-vertical p.caption,
+       .rst-versions a{
+       color: #FF0000;   
+   }
+   
+   .wy-menu-vertical a.reference:hover,
+   .wy-menu-vertical a.reference.internal:hover{
+       background: #CC0000;   
+       color: #FFE300;
+   }
+   
+   .wy-nav-side {
+       background: #5D6D7E;   
+   }
+   
+   .wy-menu-vertical a.reference {
+       color: #460000;
+   }
+   
+   .rst-versions .rst-current-version,
+   .wy-nav-top,
+   .wy-menu-vertical li.toctree-l2.current li.toctree-l3>a:hover {
+       background: #002221; /* dark green */
+   }
+   
+   /* Main content
+   ==================================================== */
+   
+   .wy-nav-content .highlight,
+   .wy-nav-content .rst-content .warning {
+       background: #FDF893; /* light green */
+   }
+   
+   .wy-nav-content .rst-content .warning .admonition-title {
+        background: #C00000;    
+   }
+   
+   .wy-nav-content .highlight .kn {
+       color: #7F0000; /* dark green */  
+   }
+   
+   .wy-nav-content .highlight .nn,
+   .wy-nav-content a.fa,
+   .rst-content dl:not(.docutils) dt,
+   .wy-nav-content .admonition.warning a {
+       color: #CC0000;  
+   }
+   
+   .wy-nav-content a.reference {
+       color: #FF0000;
+       text-decoration: underline;
+   }
+   
+   .wy-nav-content .rst-content dl:not(.docutils) dt {
+       background: #FDF893;
+       border-top: solid 3px #FCE902; /* dark green */;
+   }
+   
+    /* Footer
+   ==================================================== */
+   .wy-nav-content footer a  {
+       color: #FF0000;    
+   }
+
+   .keep-us-sustainable {
+       background-color: #333333;
+   }
+   
+

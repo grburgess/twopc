@@ -6,14 +6,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 from astromodels import clone_model
 from threeML import BayesianAnalysis, DataList
-from threeML.analyis_results import BayesianResults
+from threeML.io.logging import silence_console_log
+from threeML.analysis_results import BayesianResults
 
 
 def compute_ppc(analysis: BayesianAnalysis,
                 result: BayesianResults,
                 n_sims: int,
                 file_name: str,
-                overwrite: bool = False
+                overwrite: bool = False,
                 return_ppc: bool = False
                 ) -> Union["PPC", None]:
     """ 
@@ -67,38 +68,40 @@ def compute_ppc(analysis: BayesianAnalysis,
 
         # for each posterior sample
 
-        for j, choice in enumerate(choices):
+        with silence_console_log(and_progress_bars =False):
+            
+            for j, choice in enumerate(choices):
 
-            # get the parameters of the choice
+                # get the parameters of the choice
 
-            params = result.samples.T[choice]
+                params = result.samples.T[choice]
 
-            # set the analysis free parameters to the value of the posterior
-            for i, (k, v) in enumerate(analysis.likelihood_model.free_parameters.items()):
-                v.value = params[i]
+                # set the analysis free parameters to the value of the posterior
+                for i, (k, v) in enumerate(analysis.likelihood_model.free_parameters.items()):
+                    v.value = params[i]
 
-            # create simulated data sets with these free parameters
-            sim_dl = DataList(*[data.get_simulated_dataset()
-                                for data in analysis.data_list.values()])
+                # create simulated data sets with these free parameters
+                sim_dl = DataList(*[data.get_simulated_dataset()
+                                    for data in analysis.data_list.values()])
 
-            # set the model of the simulated data to the model of the simulation
-            for i, data in enumerate(sim_dl.values()):
+                # set the model of the simulated data to the model of the simulation
+                for i, data in enumerate(sim_dl.values()):
 
-                # clone the model for saftey's sake
-                # and set the model. For now we do nothing with this
+                    # clone the model for saftey's sake
+                    # and set the model. For now we do nothing with this
 
-                data.set_model(clone_model(analysis.likelihood_model))
+                    data.set_model(clone_model(analysis.likelihood_model))
 
-                # store the PPC data in the file
-                grp = database[data_names[i]]
-                grp.create_dataset('ppc_counts_%d' %
-                                   j, data=data.observed_counts, compression='lzf')
-                grp.create_dataset('ppc_background_counts_%d' %
-                                   j, data=data.background_counts, compression='lzf')
-            # sim_dls.append(sim_dl)
-    if return_ppc:
+                    # store the PPC data in the file
+                    grp = database[data_names[i]]
+                    grp.create_dataset('ppc_counts_%d' %
+                                       j, data=data.observed_counts, compression='lzf')
+                    grp.create_dataset('ppc_background_counts_%d' %
+                                       j, data=data.background_counts, compression='lzf')
+                # sim_dls.append(sim_dl)
+        if return_ppc:
 
-        return PPC(file_name)
+            return PPC(file_name)
 
 
 class PPC(object):
@@ -114,7 +117,7 @@ class PPC(object):
         :param filename: the file name to read
         :returns: 
         :rtype: 
-
+>
         """
 
         # open the file
@@ -134,20 +137,20 @@ class PPC(object):
 
                 ppc_counts = []
                 ppc_bkg = []
-                obs_counts = f[d]['obs_counts'].value
-                background_counts = f[d]['bkg_counts'].value
-                mask = f[d]['mask'].value
+                obs_counts = f[d]['obs_counts'][()]
+                background_counts = f[d]['bkg_counts'][()]
+                mask = f[d]['mask'][()]
 
-                ebounds = f[d]['ebounds'].value
+                ebounds = f[d]['ebounds'][()]
 
                 exposure = f[d].attrs['exposure']
 
                 # scroll thru the PPCS and build up PPC matrix
 
                 for n in range(n_sims):
-                    ppc_counts.append(f[d]['ppc_counts_%d' % n].value.tolist())
+                    ppc_counts.append(f[d]['ppc_counts_%d' % n][()].tolist())
                     ppc_bkg.append(
-                        f[d]['ppc_background_counts_%d' % n].value.tolist())
+                        f[d]['ppc_background_counts_%d' % n][()].tolist())
 
                 # build a detector object and attach it to the class
                 det_obj = PPCDetector(d, obs_counts, background_counts, mask, ebounds, exposure, np.array(ppc_counts),
@@ -219,7 +222,7 @@ class PPCDetector(object):
         return self._obs_counts
 
     @property
-    def obs_background(self) -> np.ndarrayt:
+    def obs_background(self) -> np.ndarray:
         return self._obs_background
 
     @property

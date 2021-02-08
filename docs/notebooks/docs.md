@@ -28,12 +28,16 @@ silence_warnings()
 set_threeML_style()
 ```
 
+## Generate some synthetic data
+
 ```python
 # we will use a demo response
 response = OGIPResponse(get_path_of_data_file("datasets/ogip_powerlaw.rsp"))
 ```
 
 ```python
+np.random.seed(1234)
+
 # rescale the functions for the response
 source_function = Blackbody(K=1e-7, kT=500.0)
 background_function = Powerlaw(K=1, index=-1.5, piv=1.0e3)
@@ -46,6 +50,8 @@ spectrum_generator = DispersionSpectrumLike.from_function(
 
 fig = spectrum_generator.view_count_spectrum()
 ```
+
+## Fit the data 
 
 ```python
 source_function.K.prior = Log_normal(mu = np.log(1e-7), sigma = 1 )
@@ -70,8 +76,29 @@ ba.sample(quiet=True)
 
 ```python
 fig = display_spectrum_model_counts(ba, show_background=True, source_only=False, min_rate=10)
+ax = fig.get_axes()[0]
 
+ax.set_ylim(1e-3)
 
+```
+
+## Compute the PPCs
+
+```python
+from twopc import compute_ppc
+```
+
+```python
+ppc = compute_ppc(ba,
+                  ba.results,
+                  n_sims=500, 
+                  file_name="my_ppc.h5",
+                  overwrite=True,
+                  return_ppc=True)
+```
+
+```python
+ppc.fake.plot(bkg_subtract=True);
 ```
 
 ```python
