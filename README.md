@@ -3,8 +3,8 @@
 # twopc (PPC) (2 * P +C)
 ![alt text](https://raw.githubusercontent.com/grburgess/twopc/master/docs/media/logo.png)
 
-
 A simple tool to create posterior predictive checks (PPCs) with 3ML. 
-Nothing fancy, but sciencs isn't fancy, it's a lot of trying to make your ideas fall apart, this code will hel you when doing spectral fits tox-ray data.
+Nothing fancy, but sciencs isn't fancy, it's a lot of trying to make your ideas fall apart
+This code will help you to that when doing spectral fits to x-ray data.
 
 Read the docs at [twopc.readthedocs.io](https://twopc.readthedocs.io/en/latest/index.html)
