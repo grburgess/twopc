@@ -58,8 +58,12 @@ def compute_ppc(analysis: BayesianAnalysis,
                 'ebounds', data=data.response.ebounds, compression='lzf')
             grp.create_dataset(
                 'obs_counts', data=data.observed_counts, compression='lzf')
-            grp.create_dataset(
-                'bkg_counts', data=data.background_counts, compression='lzf')
+            if data.background_counts is None:
+                grp.create_dataset(
+                    'bkg_counts', data=np.zeros(data.observed_counts.shape), compression='lzf')
+            else:
+                grp.create_dataset(
+                    'bkg_counts', data=data.background_counts, compression='lzf')
             grp.create_dataset('mask', data=data.mask, compression='lzf')
 
         # select random draws from the posterior
@@ -97,7 +101,11 @@ def compute_ppc(analysis: BayesianAnalysis,
                     grp = database[data_names[i]]
                     grp.create_dataset('ppc_counts_%d' %
                                        j, data=data.observed_counts, compression='lzf')
-                    grp.create_dataset('ppc_background_counts_%d' %
+                    if data.background_counts is None:
+                        grp.create_dataset('ppc_background_counts_%d' %
+                                       j, data=np.zeros(data.observed_counts.shape), compression='lzf')
+                    else:
+                        grp.create_dataset('ppc_background_counts_%d' %
                                        j, data=data.background_counts, compression='lzf')
                 # sim_dls.append(sim_dl)
         if return_ppc:
