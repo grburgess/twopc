@@ -368,7 +368,7 @@ class PPCDetector(object):
 
         if level_check is not None:
 
-            test, slices = self.check_ppc_qq(level)
+            test, slices = self.check_ppc_qq(level_check)
 
             if test:
 
