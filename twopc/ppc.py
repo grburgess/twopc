@@ -315,7 +315,28 @@ class PPCDetector(object):
 
         idx = np.logical_or(self._obs_cum_rate < low, high< self._obs_cum_rate)
 
-        return idx.sum() > 0 , idx
+        flag = False
+
+        tests = []
+        
+        if idx.sum()> 0:
+
+            silces = slice_disjoint(np.where(idx)[0])
+
+            for region in silces:
+    
+                if region[1] - region[0] > 1:
+
+                    tests.append(True)
+
+                else:
+
+                    tests.append(False)
+            
+            flag = np.any(tests)
+
+            
+        return flag, idx
 
 
     def plot_qq(self,
