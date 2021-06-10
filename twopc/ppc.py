@@ -318,6 +318,8 @@ class PPCDetector(object):
         flag = False
 
         tests = []
+
+        slices = None
         
         if idx.sum()> 0:
 
@@ -336,7 +338,7 @@ class PPCDetector(object):
             flag = np.any(tests)
 
             
-        return flag, idx
+        return flag, slices
 
 
     def plot_qq(self,
@@ -366,11 +368,9 @@ class PPCDetector(object):
 
         if level_check is not None:
 
-            test, idx = self.check_ppc_qq(level)
+            test, slices = self.check_ppc_qq(level)
 
             if test:
-
-                silces = slice_disjoint(np.where(idx)[0])
 
                 for region in silces:
     
