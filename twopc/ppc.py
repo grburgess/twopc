@@ -323,7 +323,7 @@ class PPCDetector(object):
         
         if idx.sum()> 0:
 
-            silces = slice_disjoint(np.where(idx)[0])
+            slices = slice_disjoint(np.where(idx)[0])
 
             for region in silces:
     
@@ -372,7 +372,7 @@ class PPCDetector(object):
 
             if test:
 
-                for region in silces:
+                for region in slices:
     
                     if region[1] - region[0] > 1:
 
