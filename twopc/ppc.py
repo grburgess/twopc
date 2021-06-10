@@ -348,6 +348,7 @@ class PPCDetector(object):
                 channel_energies: Optional[List[float]] = [30., 300., 500.],
                 level_check: Optional[float] = None,
                 bad_color: str = "#FF6E3F",
+                ax=None,
                 **kwargs
                 ):
         
@@ -355,7 +356,16 @@ class PPCDetector(object):
         levels = np.array(levels)[level_sort]
         colors = np.array(colors)[level_sort]
 
-        fig, ax = plt.subplots()
+
+        if ax is None:
+
+            fig, ax = plt.subplots()
+
+        else:
+
+            fig = ax.get_figure()
+
+        
         
         for i, level in enumerate(levels):
 
