@@ -7,7 +7,7 @@ import numpy as np
 from astromodels import clone_model
 from threeML import BayesianAnalysis, DataList
 from threeML.analysis_results import BayesianResults
-from threeML.io.logging import silence_console_log
+from threeML.io.logging import silence_console_log, update_logging_level
 from threeML.utils.progress_bar import tqdm
 
 
@@ -34,6 +34,8 @@ def compute_ppc(analysis: BayesianAnalysis,
 
     """
 
+    update_logging_level("WARNING")
+    
     p = Path(file_name)
 
     if p.exists() and (not overwrite):
@@ -211,9 +213,15 @@ class PPCDetector(object):
         self._ppc_background = ppc_background
         self._name = name
 
+        self._n_channels = len(mask)
+
+        
         self._max_energy = ebounds.max()
         self._min_energy = ebounds.min()
 
+        self._compute_qq()
+
+        
     @ property
     def name(self) -> str:
         return self._name
@@ -286,6 +294,102 @@ class PPCDetector(object):
                     obs_bkg=obs_bkg
                     )
 
+    def _compute_qq(self) -> None:
+
+        self._obs_cum_rate = (self._obs_counts - self._obs_background).cumsum()
+
+        self._ppc_cum_rate = (self._ppc_counts - self._ppc_background).cumsum(axis=1)
+
+
+    def _compute_qq_level(self, level):
+
+        low = np.percentile(self._ppc_cum_rate, 50 - level*0.5, axis=0)
+        high = np.percentile(self._ppc_cum_rate, 50 + level*0.5, axis=0)
+
+        return low, high
+
+        
+    def check_ppc_qq(self, level) -> bool:
+
+        low, high = self._compute_qq_level(level)
+
+        idx = np.logical_or(self._obs_cum_rate < low, high< self._obs_cum_rate)
+
+        return idx.sum() > 0 , idx
+
+
+    def plot_qq(self,
+                levels: List[float] = [95, 75, 55],
+                colors: List[str] = ['#ABB2B9', '#566573', '#17202A'],
+                center_color: str = '#FFD100',
+                channel_energies: Optional[List[float]] = [30., 300., 500.],
+                level_check: Optional[float] = None,
+                bad_color: str = "#FF6E3F",
+                **kwargs
+                ):
+        
+        level_sort = np.argsort(levels)[::-1]
+        levels = np.array(levels)[level_sort]
+        colors = np.array(colors)[level_sort]
+
+        fig, ax = plt.subplots()
+        
+        for i, level in enumerate(levels):
+
+
+            low, high = self._compute_qq_level(level)
+
+            ax.fill_between(self._obs_cum_rate, low, high, color=colors[i],**kwargs)
+        
+        ax.plot([0,self._obs_cum_rate.max()], [0,self._obs_cum_rate.max()], color=center_color,lw=1.,ls='--')
+
+        if level_check is not None:
+
+            test, idx = self.check_ppc_qq(level)
+
+            if test:
+
+                silces = slice_disjoint(np.where(idx)[0])
+
+                for region in silces:
+    
+                    if region[1] - region[0] > 1:
+
+                        ax.fill_between([self._obs_cum_rate[region[0]], self._obs_cum_rate[region[1]]],0,max(high),
+                                        color=bad_color,
+                                        alpha=0.6,
+                                        zorder=-1000)
+
+
+               
+        ax.set_xlim(0, self._obs_cum_rate.max())
+        ax.set_ylim(0, self._obs_cum_rate.max())
+
+        if channel_energies is not None:
+
+            for ene in channel_energies:
+
+                idx = self._ebounds.searchsorted(ene)
+
+                ax.hlines(self._obs_cum_rate[idx], 0, self._obs_cum_rate[idx], color='k', ls = '--')
+                ax.vlines(self._obs_cum_rate[idx], 0, self._obs_cum_rate[idx], color='k', ls='--')
+
+                ax.text(self._obs_cum_rate[idx]/2., self._obs_cum_rate[idx],
+                        f"{ene} keV" , backgroundcolor="white",va='center', ha='center', fontsize=10
+                        #transform=ax.transAxes
+                        )
+
+                        
+     
+        ax.set_xlabel("Cum. Obs. Counts")
+
+        ax.set_ylabel("Cum. Model Counts")
+        
+        return fig
+
+        
+
+    
     def plot(self,
              bkg_subtract: bool = False,
              ax=None, levels: List[float] = [95, 75, 55],
@@ -394,3 +498,25 @@ class PPCDetector(object):
         ax.set_xlabel(r'Energy [keV]')
 
         return fig
+
+
+def slice_disjoint(arr):
+    """
+    Returns an array of disjoint indices from a bool array
+    :param arr: and array of bools
+    """
+
+    slices = []
+    start_slice = arr[0]
+    counter = 0
+    for i in range(len(arr) - 1):
+        if arr[i + 1] > arr[i] + 1:
+            end_slice = arr[i]
+            slices.append([start_slice, end_slice])
+            start_slice = arr[i + 1]
+            counter += 1
+    if counter == 0:
+        return [[arr[0], arr[-1]]]
+    if end_slice != arr[-1]:
+        slices.append([start_slice, arr[-1]])
+    return slices
