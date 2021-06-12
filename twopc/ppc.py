@@ -66,6 +66,14 @@ def compute_ppc(analysis: BayesianAnalysis,
 
         # select random draws from the posterior
 
+        n_samples = len(result.samples.T)
+
+        if n_samples < n_sims:
+
+            print("too many sims")
+
+            n_sims = n_samples
+        
         choices = np.random.choice(
             len(result.samples.T), replace=False, size=n_sims)
 
