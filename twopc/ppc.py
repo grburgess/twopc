@@ -87,9 +87,13 @@ def compute_ppc(analysis: BayesianAnalysis,
 
                 params = result.samples.T[choice]
 
+
                 # set the analysis free parameters to the value of the posterior
-                for i, (k, v) in enumerate(analysis.likelihood_model.free_parameters.items()):
-                    v.value = params[i]
+
+                analysis.likelihood_models.set_free_parameters(params)
+
+                # for i, (k, v) in enumerate(analysis.likelihood_model.free_parameters.items()):
+                #     v.value = params[i]
 
                 # create simulated data sets with these free parameters
                 sim_dl = DataList(*[data.get_simulated_dataset()
