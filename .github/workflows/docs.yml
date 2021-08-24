@@ -51,13 +51,15 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.7        
+          python-version: 3.8        
 
       - name: Build the API doc
         run: |
 
+          pip3 install cython
           pip3 install numpy scipy numba astropy
-          
+          pip3 install astromodels
+          pip3 install threeml
           python setup.py develop
 
           brew install sphinx-doc pandoc
@@ -92,13 +94,14 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.7        
+          python-version: 3.78        
 
-      - name: Install astromodels
+      - name: Install twopc
         run: |
 
           pip3 install numpy scipy numba astropy
-          
+          pip3 install astromodels
+          pip3 install threeml
           brew install sphinx-doc pandoc
 
           pip3 install wheel
