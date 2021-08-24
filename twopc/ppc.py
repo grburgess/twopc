@@ -56,6 +56,7 @@ def compute_ppc(analysis: BayesianAnalysis,
             data_names.append(data.name)
             grp = database.create_group(data.name)
             grp.attrs['exposure'] = data.exposure
+            grp.attrs['scale_factor'] = data.scale_factor
             grp.create_dataset(
                 'ebounds', data=data.response.ebounds, compression='lzf')
             grp.create_dataset(
@@ -90,7 +91,7 @@ def compute_ppc(analysis: BayesianAnalysis,
 
                 # set the analysis free parameters to the value of the posterior
 
-                analysis.likelihood_models.set_free_parameters(params)
+                analysis.likelihood_model.set_free_parameters(params)
 
                 # for i, (k, v) in enumerate(analysis.likelihood_model.free_parameters.items()):
                 #     v.value = params[i]
@@ -160,6 +161,8 @@ class PPC(object):
 
                 exposure = f[d].attrs['exposure']
 
+                scale_factor = f[d].attrs['scale_factor']
+
                 # scroll thru the PPCS and build up PPC matrix
 
                 for n in range(n_sims):
@@ -168,7 +171,14 @@ class PPC(object):
                         f[d]['ppc_background_counts_%d' % n][()].tolist())
 
                 # build a detector object and attach it to the class
-                det_obj = PPCDetector(d, obs_counts, background_counts, mask, ebounds, exposure, np.array(ppc_counts),
+                det_obj = PPCDetector(d,
+                                      obs_counts,
+                                      background_counts,
+                                      mask,
+                                      ebounds,
+                                      exposure,
+                                      scale_factor,
+                                      np.array(ppc_counts),
                                       np.array(ppc_bkg))
 
                 setattr(self, d, det_obj)
@@ -196,7 +206,8 @@ class PPCDetector(object):
                  obs_background: np.ndarray,
                  mask: np.ndarray,
                  ebounds: np.ndarray,
-                 exposure,
+                 exposure: float,
+                 scale_factor: float,
                  ppc_counts,
                  ppc_background):
         """
@@ -216,6 +227,7 @@ class PPCDetector(object):
         """
 
         self._exposure = exposure
+        self._scale_factor = scale_factor
         self._obs_counts = obs_counts
         self._obs_background = obs_background
         self._mask = mask
@@ -263,6 +275,11 @@ class PPCDetector(object):
         return self._exposure
 
     @ property
+    def scale_factor(self) -> float:
+        return self._scale_factor
+
+    
+    @ property
     def ppc_counts(self) -> np.ndarray:
         return self._ppc_counts
 
@@ -308,9 +325,9 @@ class PPCDetector(object):
 
     def _compute_qq(self) -> None:
 
-        self._obs_cum_rate = (self._obs_counts - self._obs_background).cumsum()
+        self._obs_cum_rate = (self._obs_counts - self._scale_factor * self._obs_background).cumsum()
 
-        self._ppc_cum_rate = (self._ppc_counts - self._ppc_background).cumsum(axis=1)
+        self._ppc_cum_rate = (self._ppc_counts - self._scale_factor * self._ppc_background).cumsum(axis=1)
 
 
     def _compute_qq_level(self, level):
@@ -386,7 +403,7 @@ class PPCDetector(object):
 
             ax.fill_between(self._obs_cum_rate, low, high, color=colors[i],**kwargs)
         
-        ax.plot([0,self._obs_cum_rate.max()], [0,self._obs_cum_rate.max()], color=center_color,lw=1.,ls='--')
+        ax.plot([0,self._obs_cum_rate.max()], [0,self._obs_cum_rate.max()], color=center_color,lw=2.,ls='--')
 
         if level_check is not None:
 
@@ -479,9 +496,9 @@ class PPCDetector(object):
 
             if bkg_subtract:
 
-                tmp_low = np.percentile((self._ppc_counts - self._ppc_background) /
+                tmp_low = np.percentile((self._ppc_counts - self._scale_factor  * self._ppc_background) /
                                         self._channel_width / self._exposure, 50. - level / 2., axis=0)
-                tmp_high = np.percentile((self._ppc_counts - self._ppc_background) /
+                tmp_high = np.percentile((self._ppc_counts - self._scale_factor  * self._ppc_background) /
                                          self._channel_width / self._exposure, 50. + level / 2., axis=0)
 
                 ppc_low.append(tmp_low)
@@ -499,7 +516,7 @@ class PPCDetector(object):
 
         if bkg_subtract:
 
-            true_rate = (self._obs_counts - self._obs_background) / \
+            true_rate = (self._obs_counts - self._scale_factor  * self._obs_background) / \
                 self._channel_width / self._exposure
 
         else:
