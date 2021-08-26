@@ -34,11 +34,20 @@ def test_all():
 
     ba = BayesianAnalysis(model, DataList(spectrum_generator))
 
+
+    ppc = compute_priortpc(analysis=ba,
+                      n_sims=500,
+                      file_name="my_ppc.h5",
+                      overwrite=True,
+                      return_ppc=True)
+
+    
+    
     ba.set_sampler()
 
     ba.sample(quiet=True)
 
-    ppc = compute_ppc(ba,
+    ppc = compute_postpc(ba,
                       ba.results,
                       n_sims=500,
                       file_name="my_ppc.h5",
