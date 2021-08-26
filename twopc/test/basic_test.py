@@ -5,7 +5,7 @@ from threeML import (BayesianAnalysis, DataList, DispersionSpectrumLike,
 from threeML.io.package_data import get_path_of_data_file
 from threeML.utils.OGIP.response import OGIPResponse
 
-from twopc import compute_ppc
+from twopc import compute_postpc, compute_priorpc
 
 debug_mode()
 
@@ -35,7 +35,7 @@ def test_all():
     ba = BayesianAnalysis(model, DataList(spectrum_generator))
 
 
-    ppc = compute_priortpc(analysis=ba,
+    ppc = compute_priorpc(analysis=ba,
                       n_sims=500,
                       file_name="my_ppc.h5",
                       overwrite=True,
