@@ -1,0 +1,886 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>twopc.ppc &mdash; twopc  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/theme.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.0/dist/embed-amd.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #990000" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> twopc
+          
+
+          
+            
+            <img src="../../_static/logo_sq.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../notebooks/docs.html">Creating PPC from GBM SpectrumLike fits</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">twopc</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>twopc.ppc</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for twopc.ppc</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">import</span> <span class="nn">h5py</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">astromodels</span> <span class="kn">import</span> <span class="n">clone_model</span>
+<span class="kn">from</span> <span class="nn">threeML</span> <span class="kn">import</span> <span class="n">BayesianAnalysis</span><span class="p">,</span> <span class="n">DataList</span>
+<span class="kn">from</span> <span class="nn">threeML.analysis_results</span> <span class="kn">import</span> <span class="n">BayesianResults</span>
+<span class="kn">from</span> <span class="nn">threeML.io.logging</span> <span class="kn">import</span> <span class="n">silence_console_log</span><span class="p">,</span> <span class="n">update_logging_level</span>
+<span class="kn">from</span> <span class="nn">threeML.utils.progress_bar</span> <span class="kn">import</span> <span class="n">tqdm</span>
+
+
+<div class="viewcode-block" id="compute_postpc"><a class="viewcode-back" href="../../notebooks/api/twopc.html#twopc.ppc.compute_postpc">[docs]</a><span class="k">def</span> <span class="nf">compute_postpc</span><span class="p">(</span><span class="n">analysis</span><span class="p">:</span> <span class="n">BayesianAnalysis</span><span class="p">,</span>
+                <span class="n">result</span><span class="p">:</span> <span class="n">BayesianResults</span><span class="p">,</span>
+                <span class="n">n_sims</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                <span class="n">file_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="n">return_ppc</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="s2">&quot;PPC&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute a posterior predictive check from a 3ML DispersionLike</span>
+<span class="sd">    Plugin. The resulting posterior data simulations are stored</span>
+<span class="sd">    in an HDF5 file which can be read by the PPC class</span>
+
+<span class="sd">    :param analysis: 3ML bayesian analysis object</span>
+<span class="sd">    :param result: 3ML analysis result</span>
+<span class="sd">    :param n_sims: the number of posterior simulations to create</span>
+<span class="sd">    :param file_name: the filename to save to</span>
+<span class="sd">    :param overwrite: to overwrite an existsing file</span>
+<span class="sd">    :param return_ppc: if true, PPC object will be return directy</span>
+<span class="sd">    :returns: None</span>
+<span class="sd">    :rtype:</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">update_logging_level</span><span class="p">(</span><span class="s2">&quot;WARNING&quot;</span><span class="p">)</span>
+    
+    <span class="n">p</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">overwrite</span><span class="p">):</span>
+
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">file_name</span><span class="si">}</span><span class="s2"> already exists!&quot;</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">libver</span><span class="o">=</span><span class="s1">&#39;latest&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">database</span><span class="p">:</span>
+
+        <span class="c1"># first we collect the real data data and save it so that we will not have to</span>
+        <span class="c1"># look it up in the future</span>
+
+        <span class="n">data_names</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">database</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;n_sims&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">n_sims</span>
+
+        <span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">analysis</span><span class="o">.</span><span class="n">data_list</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+
+            <span class="n">data_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">grp</span> <span class="o">=</span> <span class="n">database</span><span class="o">.</span><span class="n">create_group</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">grp</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;exposure&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">exposure</span>
+            <span class="n">grp</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;scale_factor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">scale_factor</span>
+            <span class="n">grp</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span>
+                <span class="s1">&#39;ebounds&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">ebounds</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="s1">&#39;lzf&#39;</span><span class="p">)</span>
+            <span class="n">grp</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span>
+                <span class="s1">&#39;obs_counts&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">observed_counts</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="s1">&#39;lzf&#39;</span><span class="p">)</span>
+            <span class="n">grp</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span>
+                <span class="s1">&#39;bkg_counts&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">background_counts</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="s1">&#39;lzf&#39;</span><span class="p">)</span>
+            <span class="n">grp</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s1">&#39;mask&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">mask</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="s1">&#39;lzf&#39;</span><span class="p">)</span>
+
+        <span class="c1"># select random draws from the posterior</span>
+
+        <span class="n">n_samples</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">samples</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">n_samples</span> <span class="o">&lt;</span> <span class="n">n_sims</span><span class="p">:</span>
+
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;too many sims&quot;</span><span class="p">)</span>
+
+            <span class="n">n_sims</span> <span class="o">=</span> <span class="n">n_samples</span>
+        
+        <span class="n">choices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">samples</span><span class="o">.</span><span class="n">T</span><span class="p">),</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">n_sims</span><span class="p">)</span>
+
+        <span class="c1"># for each posterior sample</span>
+
+        <span class="k">with</span> <span class="n">silence_console_log</span><span class="p">(</span><span class="n">and_progress_bars</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+            <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">choice</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tqdm</span><span class="p">(</span><span class="n">choices</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;sampling posterior&quot;</span><span class="p">)):</span>
+
+                <span class="c1"># get the parameters of the choice</span>
+
+                <span class="n">params</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">samples</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">choice</span><span class="p">]</span>
+
+
+                <span class="c1"># set the analysis free parameters to the value of the posterior</span>
+
+                <span class="n">analysis</span><span class="o">.</span><span class="n">likelihood_model</span><span class="o">.</span><span class="n">set_free_parameters</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+
+                <span class="c1"># for i, (k, v) in enumerate(analysis.likelihood_model.free_parameters.items()):</span>
+                <span class="c1">#     v.value = params[i]</span>
+
+                <span class="c1"># create simulated data sets with these free parameters</span>
+                <span class="n">sim_dl</span> <span class="o">=</span> <span class="n">DataList</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">data</span><span class="o">.</span><span class="n">get_simulated_dataset</span><span class="p">()</span>
+                                    <span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">analysis</span><span class="o">.</span><span class="n">data_list</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span>
+
+                <span class="c1"># set the model of the simulated data to the model of the simulation</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sim_dl</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+
+                    <span class="c1"># clone the model for saftey&#39;s sake</span>
+                    <span class="c1"># and set the model. For now we do nothing with this</span>
+
+                    <span class="n">data</span><span class="o">.</span><span class="n">set_model</span><span class="p">(</span><span class="n">clone_model</span><span class="p">(</span><span class="n">analysis</span><span class="o">.</span><span class="n">likelihood_model</span><span class="p">))</span>
+
+                    <span class="c1"># store the PPC data in the file</span>
+                    <span class="n">grp</span> <span class="o">=</span> <span class="n">database</span><span class="p">[</span><span class="n">data_names</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
+                    <span class="n">grp</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s1">&#39;ppc_counts_</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span>
+                                       <span class="n">j</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">observed_counts</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="s1">&#39;lzf&#39;</span><span class="p">)</span>
+                    <span class="n">grp</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s1">&#39;ppc_background_counts_</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span>
+                                       <span class="n">j</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">background_counts</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="s1">&#39;lzf&#39;</span><span class="p">)</span>
+                <span class="c1"># sim_dls.append(sim_dl)</span>
+        <span class="k">if</span> <span class="n">return_ppc</span><span class="p">:</span>
+
+            <span class="k">return</span> <span class="n">PPC</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="compute_priorpc"><a class="viewcode-back" href="../../notebooks/api/twopc.html#twopc.ppc.compute_priorpc">[docs]</a><span class="k">def</span> <span class="nf">compute_priorpc</span><span class="p">(</span><span class="n">analysis</span><span class="p">:</span> <span class="n">BayesianAnalysis</span><span class="p">,</span>
+                    <span class="n">n_sims</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                    <span class="n">file_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                    <span class="n">parameters</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                    <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                    <span class="n">return_ppc</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+                    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="s2">&quot;PPC&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute a prior predictive check from a 3ML DispersionLike</span>
+<span class="sd">    Plugin. The resulting prior data simulations are stored</span>
+<span class="sd">    in an HDF5 file which can be read by the PPC class</span>
+
+<span class="sd">    :param analysis: 3ML bayesian analysis object</span>
+<span class="sd">    :param n_sims: the number of posterior simulations to create</span>
+<span class="sd">    :param file_name: the filename to save to</span>
+<span class="sd">    :param parameters: optional parameter paths to only be used</span>
+<span class="sd">    :param overwrite: to overwrite an existsing file</span>
+<span class="sd">    :param return_ppc: if true, PPC object will be return directy</span>
+<span class="sd">    :returns: None</span>
+<span class="sd">    :rtype:</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">update_logging_level</span><span class="p">(</span><span class="s2">&quot;WARNING&quot;</span><span class="p">)</span>
+    
+    <span class="n">p</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">overwrite</span><span class="p">):</span>
+
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">file_name</span><span class="si">}</span><span class="s2"> already exists!&quot;</span><span class="p">)</span>
+
+    <span class="n">base_model</span> <span class="o">=</span> <span class="n">clone_model</span><span class="p">(</span><span class="n">analysis</span><span class="o">.</span><span class="n">likelihood_model</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">parameters</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        
+        <span class="k">for</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="n">parameters</span><span class="p">:</span>
+            
+            <span class="k">assert</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="n">base_model</span><span class="o">.</span><span class="n">free_parameters</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">parameter</span><span class="si">}</span><span class="s1"> is not in the model&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        
+        <span class="n">parameters</span> <span class="o">=</span> <span class="n">base_model</span><span class="o">.</span><span class="n">free_parameters</span>
+
+    <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">libver</span><span class="o">=</span><span class="s1">&#39;latest&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">database</span><span class="p">:</span>
+
+        <span class="c1"># first we collect the real data data and save it so that we will not have to</span>
+        <span class="c1"># look it up in the future</span>
+
+        <span class="n">data_names</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">database</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;n_sims&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">n_sims</span>
+
+        <span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">analysis</span><span class="o">.</span><span class="n">data_list</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+
+            <span class="n">data_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">grp</span> <span class="o">=</span> <span class="n">database</span><span class="o">.</span><span class="n">create_group</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">grp</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;exposure&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">exposure</span>
+            <span class="n">grp</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;scale_factor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">scale_factor</span>
+            <span class="n">grp</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span>
+                <span class="s1">&#39;ebounds&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">ebounds</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="s1">&#39;gzip&#39;</span><span class="p">)</span>
+            <span class="n">grp</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span>
+                <span class="s1">&#39;obs_counts&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">observed_counts</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="s1">&#39;gzip&#39;</span><span class="p">)</span>
+            <span class="n">grp</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span>
+                <span class="s1">&#39;bkg_counts&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">background_counts</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="s1">&#39;gzip&#39;</span><span class="p">)</span>
+            <span class="n">grp</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s1">&#39;mask&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">mask</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="s1">&#39;gzip&#39;</span><span class="p">)</span>
+
+        <span class="c1"># select random draws from the posterior</span>
+
+        <span class="c1"># for each posterior sample</span>
+
+
+
+
+        <span class="k">with</span> <span class="n">silence_console_log</span><span class="p">(</span><span class="n">and_progress_bars</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_sims</span><span class="p">):</span>
+        
+                <span class="c1"># set new parameters</span>
+
+                <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">analysis</span><span class="o">.</span><span class="n">likelihood_model</span><span class="o">.</span><span class="n">free_parameters</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+
+                    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">parameters</span><span class="p">:</span>
+
+                        <span class="c1"># get a value</span>
+                        <span class="n">new_value</span> <span class="o">=</span> <span class="n">base_model</span><span class="o">.</span><span class="n">free_parameters</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">prior</span><span class="o">.</span><span class="n">from_unit_cube</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">())</span>
+
+                        <span class="n">param</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">new_value</span>
+
+
+                <span class="c1"># collect the observed counts</span>
+
+                <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">analysis</span><span class="o">.</span><span class="n">data_list</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">analysis</span><span class="o">.</span><span class="n">data_list</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+
+                    <span class="c1"># store the PPC data in the file</span>
+                    <span class="n">grp</span> <span class="o">=</span> <span class="n">database</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+
+                    <span class="n">grp</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s1">&#39;ppc_counts_</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span>
+                                       <span class="n">j</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">get_model</span><span class="p">(),</span> <span class="n">compression</span><span class="o">=</span><span class="s1">&#39;gzip&#39;</span><span class="p">)</span>
+                    <span class="n">grp</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s1">&#39;ppc_background_counts_</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span>
+                                       <span class="n">j</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">background_counts</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="s1">&#39;gzip&#39;</span><span class="p">)</span>
+            <span class="c1"># sim_dls.append(sim_dl)</span>
+        <span class="k">if</span> <span class="n">return_ppc</span><span class="p">:</span>
+
+            <span class="k">return</span> <span class="n">PPC</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span></div>
+
+        
+
+<div class="viewcode-block" id="PPC"><a class="viewcode-back" href="../../notebooks/api/twopc.html#twopc.ppc.PPC">[docs]</a><span class="k">class</span> <span class="nc">PPC</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+<div class="viewcode-block" id="PPC.__init__"><a class="viewcode-back" href="../../notebooks/api/twopc.html#twopc.ppc.PPC.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reads a PPC HDF5 created by compute_ppc. This applies to DispersionLike</span>
+<span class="sd">        data types only. Each detector is read from the file and an associated</span>
+<span class="sd">        detector attribute is added to the class allowing the user to access the</span>
+<span class="sd">        observed and PPC information of the detector</span>
+
+
+<span class="sd">        :param filename: the file name to read</span>
+<span class="sd">        :returns:</span>
+<span class="sd">        :rtype:</span>
+<span class="sd">&gt;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># open the file</span>
+
+        <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+
+            <span class="n">n_sims</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;n_sims&#39;</span><span class="p">]</span>
+
+            <span class="n">dets</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+            <span class="c1"># go thru all the detectors and grab</span>
+            <span class="c1"># their data</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_det_list</span> <span class="o">=</span> <span class="p">{}</span>
+
+            <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dets</span><span class="p">:</span>
+
+                <span class="n">ppc_counts</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">ppc_bkg</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">obs_counts</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="n">d</span><span class="p">][</span><span class="s1">&#39;obs_counts&#39;</span><span class="p">][()]</span>
+                <span class="n">background_counts</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="n">d</span><span class="p">][</span><span class="s1">&#39;bkg_counts&#39;</span><span class="p">][()]</span>
+                <span class="n">mask</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="n">d</span><span class="p">][</span><span class="s1">&#39;mask&#39;</span><span class="p">][()]</span>
+
+                <span class="n">ebounds</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="n">d</span><span class="p">][</span><span class="s1">&#39;ebounds&#39;</span><span class="p">][()]</span>
+
+                <span class="n">exposure</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="n">d</span><span class="p">]</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;exposure&#39;</span><span class="p">]</span>
+
+                <span class="n">scale_factor</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="n">d</span><span class="p">]</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;scale_factor&#39;</span><span class="p">]</span>
+
+                <span class="c1"># scroll thru the PPCS and build up PPC matrix</span>
+
+                <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_sims</span><span class="p">):</span>
+                    <span class="n">ppc_counts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">d</span><span class="p">][</span><span class="s1">&#39;ppc_counts_</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">n</span><span class="p">][()]</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+                    <span class="n">ppc_bkg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="n">f</span><span class="p">[</span><span class="n">d</span><span class="p">][</span><span class="s1">&#39;ppc_background_counts_</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">n</span><span class="p">][()]</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+
+                <span class="c1"># build a detector object and attach it to the class</span>
+                <span class="n">det_obj</span> <span class="o">=</span> <span class="n">PPCDetector</span><span class="p">(</span><span class="n">d</span><span class="p">,</span>
+                                      <span class="n">obs_counts</span><span class="p">,</span>
+                                      <span class="n">background_counts</span><span class="p">,</span>
+                                      <span class="n">mask</span><span class="p">,</span>
+                                      <span class="n">ebounds</span><span class="p">,</span>
+                                      <span class="n">exposure</span><span class="p">,</span>
+                                      <span class="n">scale_factor</span><span class="p">,</span>
+                                      <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ppc_counts</span><span class="p">),</span>
+                                      <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ppc_bkg</span><span class="p">))</span>
+
+                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">det_obj</span><span class="p">)</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">_det_list</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">=</span> <span class="n">det_obj</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_n_sims</span> <span class="o">=</span> <span class="n">n_sims</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dets</span> <span class="o">=</span> <span class="n">dets</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_filename</span> <span class="o">=</span> <span class="n">file_name</span></div>
+
+    <span class="o">@</span> <span class="nb">property</span>
+    <span class="k">def</span> <span class="nf">n_sims</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_sims</span>
+
+    <span class="o">@</span> <span class="nb">property</span>
+    <span class="k">def</span> <span class="nf">detectors</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_det_list</span></div>
+
+
+<div class="viewcode-block" id="PPCDetector"><a class="viewcode-back" href="../../notebooks/api/twopc.html#twopc.ppc.PPCDetector">[docs]</a><span class="k">class</span> <span class="nc">PPCDetector</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+<div class="viewcode-block" id="PPCDetector.__init__"><a class="viewcode-back" href="../../notebooks/api/twopc.html#twopc.ppc.PPCDetector.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                 <span class="n">obs_counts</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                 <span class="n">obs_background</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                 <span class="n">mask</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                 <span class="n">ebounds</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                 <span class="n">exposure</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                 <span class="n">scale_factor</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                 <span class="n">ppc_counts</span><span class="p">,</span>
+                 <span class="n">ppc_background</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This is simply a container object that stores the observed and PPC information of each detector for examination</span>
+
+<span class="sd">        :param name:</span>
+<span class="sd">        :param obs_counts:</span>
+<span class="sd">        :param obs_background:</span>
+<span class="sd">        :param mask:</span>
+<span class="sd">        :param ebounds:</span>
+<span class="sd">        :param exposure:</span>
+<span class="sd">        :param ppc_counts:</span>
+<span class="sd">        :param ppc_background:</span>
+<span class="sd">        :returns:</span>
+<span class="sd">        :rtype:</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_exposure</span> <span class="o">=</span> <span class="n">exposure</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_scale_factor</span> <span class="o">=</span> <span class="n">scale_factor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_obs_counts</span> <span class="o">=</span> <span class="n">obs_counts</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_obs_background</span> <span class="o">=</span> <span class="n">obs_background</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span> <span class="o">=</span> <span class="n">mask</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ebounds</span> <span class="o">=</span> <span class="n">ebounds</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_channel_width</span> <span class="o">=</span> <span class="n">ebounds</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">-</span> <span class="n">ebounds</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ppc_counts</span> <span class="o">=</span> <span class="n">ppc_counts</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ppc_background</span> <span class="o">=</span> <span class="n">ppc_background</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_n_channels</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_max_energy</span> <span class="o">=</span> <span class="n">ebounds</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_min_energy</span> <span class="o">=</span> <span class="n">ebounds</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_compute_qq</span><span class="p">()</span></div>
+
+        
+    <span class="o">@</span> <span class="nb">property</span>
+    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span>
+
+    <span class="o">@</span> <span class="nb">property</span>
+    <span class="k">def</span> <span class="nf">obs_counts</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_obs_counts</span>
+
+    <span class="o">@</span> <span class="nb">property</span>
+    <span class="k">def</span> <span class="nf">obs_background</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_obs_background</span>
+
+    <span class="o">@</span> <span class="nb">property</span>
+    <span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span>
+
+    <span class="o">@</span> <span class="nb">property</span>
+    <span class="k">def</span> <span class="nf">ebounds</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ebounds</span>
+
+    <span class="o">@</span> <span class="nb">property</span>
+    <span class="k">def</span> <span class="nf">channel_width</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channel_width</span>
+
+    <span class="o">@</span> <span class="nb">property</span>
+    <span class="k">def</span> <span class="nf">exposure</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exposure</span>
+
+    <span class="o">@</span> <span class="nb">property</span>
+    <span class="k">def</span> <span class="nf">scale_factor</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scale_factor</span>
+
+    
+    <span class="o">@</span> <span class="nb">property</span>
+    <span class="k">def</span> <span class="nf">ppc_counts</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ppc_counts</span>
+
+    <span class="o">@</span> <span class="nb">property</span>
+    <span class="k">def</span> <span class="nf">ppc_background</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ppc_background</span>
+
+    <span class="k">def</span> <span class="nf">_get_channel_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ene_min</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">ene_max</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+
+        <span class="k">if</span> <span class="n">ene_min</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_min_energy</span><span class="p">:</span>
+
+            <span class="n">lo</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">else</span><span class="p">:</span>
+
+            <span class="n">lo</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ebounds</span><span class="p">,</span> <span class="n">ene_min</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="n">ene_max</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_energy</span><span class="p">:</span>
+
+            <span class="n">hi</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+        <span class="k">else</span><span class="p">:</span>
+
+            <span class="n">hi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ebounds</span><span class="p">,</span> <span class="n">ene_max</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+
+        <span class="k">return</span> <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span>
+
+<div class="viewcode-block" id="PPCDetector.get_integral_ppc"><a class="viewcode-back" href="../../notebooks/api/twopc.html#twopc.ppc.PPCDetector.get_integral_ppc">[docs]</a>    <span class="k">def</span> <span class="nf">get_integral_ppc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ene_min</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">ene_max</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+
+        <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_channel_bounds</span><span class="p">(</span><span class="n">ene_min</span><span class="p">,</span> <span class="n">ene_max</span><span class="p">)</span>
+
+        <span class="n">counts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ppc_counts</span><span class="p">[:,</span> <span class="n">lo</span><span class="p">:</span><span class="n">hi</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">bkg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ppc_background</span><span class="p">[:,</span> <span class="n">lo</span><span class="p">:</span><span class="n">hi</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">obs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_obs_counts</span><span class="p">[</span><span class="n">lo</span><span class="p">:</span><span class="n">hi</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="n">obs_bkg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_obs_background</span><span class="p">[</span><span class="n">lo</span><span class="p">:</span><span class="n">hi</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">ppc_counts</span><span class="o">=</span><span class="n">counts</span><span class="p">,</span>
+                    <span class="n">ppc_background</span><span class="o">=</span><span class="n">bkg</span><span class="p">,</span>
+                    <span class="n">obs_counts</span><span class="o">=</span><span class="n">obs</span><span class="p">,</span>
+                    <span class="n">obs_bkg</span><span class="o">=</span><span class="n">obs_bkg</span>
+                    <span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_compute_qq</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_obs_cum_rate</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_obs_counts</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scale_factor</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_obs_background</span><span class="p">)</span><span class="o">.</span><span class="n">cumsum</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ppc_cum_rate</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ppc_counts</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scale_factor</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ppc_background</span><span class="p">)</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">_compute_qq_level</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">level</span><span class="p">):</span>
+
+        <span class="n">low</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ppc_cum_rate</span><span class="p">,</span> <span class="mi">50</span> <span class="o">-</span> <span class="n">level</span><span class="o">*</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">high</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ppc_cum_rate</span><span class="p">,</span> <span class="mi">50</span> <span class="o">+</span> <span class="n">level</span><span class="o">*</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">low</span><span class="p">,</span> <span class="n">high</span>
+
+        
+<div class="viewcode-block" id="PPCDetector.check_ppc_qq"><a class="viewcode-back" href="../../notebooks/api/twopc.html#twopc.ppc.PPCDetector.check_ppc_qq">[docs]</a>    <span class="k">def</span> <span class="nf">check_ppc_qq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">level</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+
+        <span class="n">low</span><span class="p">,</span> <span class="n">high</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_qq_level</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
+
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_obs_cum_rate</span> <span class="o">&lt;</span> <span class="n">low</span><span class="p">,</span> <span class="n">high</span><span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_obs_cum_rate</span><span class="p">)</span>
+
+        <span class="n">flag</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="n">tests</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">slices</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="k">if</span> <span class="n">idx</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+
+            <span class="n">slices</span> <span class="o">=</span> <span class="n">slice_disjoint</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">idx</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+
+            <span class="k">for</span> <span class="n">region</span> <span class="ow">in</span> <span class="n">slices</span><span class="p">:</span>
+    
+                <span class="k">if</span> <span class="n">region</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">region</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+
+                    <span class="n">tests</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+                <span class="k">else</span><span class="p">:</span>
+
+                    <span class="n">tests</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+            
+            <span class="n">flag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">tests</span><span class="p">)</span>
+
+            
+        <span class="k">return</span> <span class="n">flag</span><span class="p">,</span> <span class="n">slices</span></div>
+
+
+<div class="viewcode-block" id="PPCDetector.plot_qq"><a class="viewcode-back" href="../../notebooks/api/twopc.html#twopc.ppc.PPCDetector.plot_qq">[docs]</a>    <span class="k">def</span> <span class="nf">plot_qq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                <span class="n">levels</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">95</span><span class="p">,</span> <span class="mi">75</span><span class="p">,</span> <span class="mi">55</span><span class="p">],</span>
+                <span class="n">colors</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;#ABB2B9&#39;</span><span class="p">,</span> <span class="s1">&#39;#566573&#39;</span><span class="p">,</span> <span class="s1">&#39;#17202A&#39;</span><span class="p">],</span>
+                <span class="n">center_color</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;#FFD100&#39;</span><span class="p">,</span>
+                <span class="n">channel_energies</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[</span><span class="mf">30.</span><span class="p">,</span> <span class="mf">300.</span><span class="p">,</span> <span class="mf">500.</span><span class="p">],</span>
+                <span class="n">level_check</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="n">bad_color</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;#FF6E3F&quot;</span><span class="p">,</span>
+                <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">kwargs</span>
+                <span class="p">):</span>
+        
+        <span class="n">level_sort</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">levels</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">levels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">levels</span><span class="p">)[</span><span class="n">level_sort</span><span class="p">]</span>
+        <span class="n">colors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">colors</span><span class="p">)[</span><span class="n">level_sort</span><span class="p">]</span>
+
+
+        <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+
+            <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+
+        <span class="k">else</span><span class="p">:</span>
+
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_figure</span><span class="p">()</span>
+
+        
+        
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">level</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">levels</span><span class="p">):</span>
+
+
+            <span class="n">low</span><span class="p">,</span> <span class="n">high</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_qq_level</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
+
+            <span class="n">ax</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_obs_cum_rate</span><span class="p">,</span> <span class="n">low</span><span class="p">,</span> <span class="n">high</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_obs_cum_rate</span><span class="o">.</span><span class="n">max</span><span class="p">()],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_obs_cum_rate</span><span class="o">.</span><span class="n">max</span><span class="p">()],</span> <span class="n">color</span><span class="o">=</span><span class="n">center_color</span><span class="p">,</span><span class="n">lw</span><span class="o">=</span><span class="mf">2.</span><span class="p">,</span><span class="n">ls</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">level_check</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+
+            <span class="n">test</span><span class="p">,</span> <span class="n">slices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_ppc_qq</span><span class="p">(</span><span class="n">level_check</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">test</span><span class="p">:</span>
+
+                <span class="k">for</span> <span class="n">region</span> <span class="ow">in</span> <span class="n">slices</span><span class="p">:</span>
+    
+                    <span class="k">if</span> <span class="n">region</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">region</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+
+                        <span class="n">ax</span><span class="o">.</span><span class="n">fill_between</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_obs_cum_rate</span><span class="p">[</span><span class="n">region</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_obs_cum_rate</span><span class="p">[</span><span class="n">region</span><span class="p">[</span><span class="mi">1</span><span class="p">]]],</span><span class="mi">0</span><span class="p">,</span><span class="nb">max</span><span class="p">(</span><span class="n">high</span><span class="p">),</span>
+                                        <span class="n">color</span><span class="o">=</span><span class="n">bad_color</span><span class="p">,</span>
+                                        <span class="n">alpha</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span>
+                                        <span class="n">zorder</span><span class="o">=-</span><span class="mi">1000</span><span class="p">)</span>
+
+
+               
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_obs_cum_rate</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_obs_cum_rate</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+
+        <span class="k">if</span> <span class="n">channel_energies</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+
+            <span class="k">for</span> <span class="n">ene</span> <span class="ow">in</span> <span class="n">channel_energies</span><span class="p">:</span>
+
+                <span class="n">idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ebounds</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">ene</span><span class="p">)</span>
+
+                <span class="n">ax</span><span class="o">.</span><span class="n">hlines</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_obs_cum_rate</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_obs_cum_rate</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="n">ls</span> <span class="o">=</span> <span class="s1">&#39;--&#39;</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">vlines</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_obs_cum_rate</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_obs_cum_rate</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">)</span>
+
+                <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_obs_cum_rate</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="o">/</span><span class="mf">2.</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_obs_cum_rate</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span>
+                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">ene</span><span class="si">}</span><span class="s2"> keV&quot;</span> <span class="p">,</span> <span class="n">backgroundcolor</span><span class="o">=</span><span class="s2">&quot;white&quot;</span><span class="p">,</span><span class="n">va</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span>
+                        <span class="c1">#transform=ax.transAxes</span>
+                        <span class="p">)</span>
+
+                        
+     
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Cum. Obs. Counts&quot;</span><span class="p">)</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Cum. Model Counts&quot;</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">fig</span></div>
+
+        
+
+    
+<div class="viewcode-block" id="PPCDetector.plot"><a class="viewcode-back" href="../../notebooks/api/twopc.html#twopc.ppc.PPCDetector.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+             <span class="n">bkg_subtract</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+             <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">levels</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">95</span><span class="p">,</span> <span class="mi">75</span><span class="p">,</span> <span class="mi">55</span><span class="p">],</span>
+             <span class="n">colors</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;#ABB2B9&#39;</span><span class="p">,</span> <span class="s1">&#39;#566573&#39;</span><span class="p">,</span> <span class="s1">&#39;#17202A&#39;</span><span class="p">],</span>
+             <span class="n">lc</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;#FFD100&#39;</span><span class="p">,</span>
+             <span class="n">lw</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">.9</span><span class="p">,</span>
+             <span class="o">**</span><span class="n">kwargs</span>
+
+             <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;FIXME! briefly describe function</span>
+
+<span class="sd">        :param bkg_subtract:</span>
+<span class="sd">        :param ax:</span>
+<span class="sd">        :param levels:</span>
+<span class="sd">        :param 75:</span>
+<span class="sd">        :param 55]:</span>
+<span class="sd">        :param colors:</span>
+<span class="sd">        :param &#39;#566573&#39;:</span>
+<span class="sd">        :param &#39;#17202A&#39;]:</span>
+<span class="sd">        :param lc:</span>
+<span class="sd">        :param lw:</span>
+<span class="sd">        :returns:</span>
+<span class="sd">        :rtype:</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">levels</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span>
+            <span class="n">colors</span><span class="p">),</span> <span class="s1">&#39;Number of levels and number of colors MUST be the same&#39;</span>
+
+        <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+
+            <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+
+        <span class="k">else</span><span class="p">:</span>
+
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_figure</span><span class="p">()</span>
+
+        <span class="c1"># compute all the percentiles</span>
+
+        <span class="n">ppc_low</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">ppc_high</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">level</span> <span class="ow">in</span> <span class="n">levels</span><span class="p">:</span>
+
+            <span class="k">if</span> <span class="n">bkg_subtract</span><span class="p">:</span>
+
+                <span class="n">tmp_low</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_ppc_counts</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scale_factor</span>  <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ppc_background</span><span class="p">)</span> <span class="o">/</span>
+                                        <span class="bp">self</span><span class="o">.</span><span class="n">_channel_width</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exposure</span><span class="p">,</span> <span class="mf">50.</span> <span class="o">-</span> <span class="n">level</span> <span class="o">/</span> <span class="mf">2.</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                <span class="n">tmp_high</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_ppc_counts</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scale_factor</span>  <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ppc_background</span><span class="p">)</span> <span class="o">/</span>
+                                         <span class="bp">self</span><span class="o">.</span><span class="n">_channel_width</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exposure</span><span class="p">,</span> <span class="mf">50.</span> <span class="o">+</span> <span class="n">level</span> <span class="o">/</span> <span class="mf">2.</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+                <span class="n">ppc_low</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tmp_low</span><span class="p">)</span>
+                <span class="n">ppc_high</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tmp_high</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+
+                <span class="n">tmp_low</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_ppc_counts</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channel_width</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exposure</span><span class="p">,</span> <span class="mf">50.</span> <span class="o">-</span> <span class="n">level</span> <span class="o">/</span> <span class="mf">2.</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                <span class="n">tmp_high</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_ppc_counts</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channel_width</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exposure</span><span class="p">,</span> <span class="mf">50.</span> <span class="o">+</span> <span class="n">level</span> <span class="o">/</span> <span class="mf">2.</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+                <span class="n">ppc_low</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tmp_low</span><span class="p">)</span>
+                <span class="n">ppc_high</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tmp_high</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">bkg_subtract</span><span class="p">:</span>
+
+            <span class="n">true_rate</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_obs_counts</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scale_factor</span>  <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_obs_background</span><span class="p">)</span> <span class="o">/</span> \
+                <span class="bp">self</span><span class="o">.</span><span class="n">_channel_width</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exposure</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">true_rate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_obs_counts</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channel_width</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exposure</span>
+
+        <span class="c1"># colors = [light,mid,dark]</span>
+
+        <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="p">(</span><span class="n">lo</span><span class="p">,</span> <span class="n">hi</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">ppc_low</span><span class="p">,</span> <span class="n">ppc_high</span><span class="p">)):</span>
+
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ebounds</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+
+                    <span class="n">ax</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span>
+                        <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_ebounds</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ebounds</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]],</span> <span class="n">lo</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">hi</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+
+        <span class="n">n_chan</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ebounds</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ebounds</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+
+                <span class="n">ax</span><span class="o">.</span><span class="n">hlines</span><span class="p">(</span><span class="n">true_rate</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ebounds</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                          <span class="bp">self</span><span class="o">.</span><span class="n">_ebounds</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="n">lc</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="n">lw</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">n_chan</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]:</span>
+
+                        <span class="n">ax</span><span class="o">.</span><span class="n">vlines</span><span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_ebounds</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="n">true_rate</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">true_rate</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="n">lc</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="n">lw</span><span class="p">)</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xscale</span><span class="p">(</span><span class="s1">&#39;log&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s1">&#39;log&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">bkg_subtract</span><span class="p">:</span>
+
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;Net Rate [cnt s$^{-1}$ keV$^{-1}$]&#39;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;Rate [cnt s$^{-1}$ keV$^{-1}$]&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;Energy [keV]&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">fig</span></div></div>
+
+
+<div class="viewcode-block" id="slice_disjoint"><a class="viewcode-back" href="../../notebooks/api/twopc.html#twopc.ppc.slice_disjoint">[docs]</a><span class="k">def</span> <span class="nf">slice_disjoint</span><span class="p">(</span><span class="n">arr</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns an array of disjoint indices from a bool array</span>
+<span class="sd">    :param arr: and array of bools</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">slices</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">start_slice</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">arr</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">arr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">end_slice</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">slices</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">start_slice</span><span class="p">,</span> <span class="n">end_slice</span><span class="p">])</span>
+            <span class="n">start_slice</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">counter</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[[</span><span class="n">arr</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">arr</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]]</span>
+    <span class="k">if</span> <span class="n">end_slice</span> <span class="o">!=</span> <span class="n">arr</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="n">slices</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">start_slice</span><span class="p">,</span> <span class="n">arr</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span>
+    <span class="k">return</span> <span class="n">slices</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, J. Michael Burgess.
+
+    </p>
+  </div> 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
