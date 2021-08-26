@@ -11,7 +11,7 @@ from threeML.io.logging import silence_console_log, update_logging_level
 from threeML.utils.progress_bar import tqdm
 
 
-def compute_ppc(analysis: BayesianAnalysis,
+def compute_postpc(analysis: BayesianAnalysis,
                 result: BayesianResults,
                 n_sims: int,
                 file_name: str,
@@ -119,6 +119,112 @@ def compute_ppc(analysis: BayesianAnalysis,
 
             return PPC(file_name)
 
+
+def compute_priorpc(analysis: BayesianAnalysis,
+                    n_sims: int,
+                    file_name: str,
+                    parameters: Optional[List[str]] = None,
+                    overwrite: bool = False,
+                    return_ppc: bool = False
+                    ) -> Union["PPC", None]:
+    """
+    Compute a prior predictive check from a 3ML DispersionLike
+    Plugin. The resulting prior data simulations are stored
+    in an HDF5 file which can be read by the PPC class
+
+    :param analysis: 3ML bayesian analysis object
+    :param n_sims: the number of posterior simulations to create
+    :param file_name: the filename to save to
+    :param parameters: optional parameter paths to only be used
+    :param overwrite: to overwrite an existsing file
+    :param return_ppc: if true, PPC object will be return directy
+    :returns: None
+    :rtype:
+
+    """
+
+    update_logging_level("WARNING")
+    
+    p = Path(file_name)
+
+    if p.exists() and (not overwrite):
+
+        raise RuntimeError(f"{file_name} already exists!")
+
+    base_model = clone_model(analysis.likelihood_model)
+
+    if parameters is not None:
+        
+        for parameter in parameters:
+            
+            assert parameter in base_model.free_parameters, f'{parameter} is not in the model'
+    else:
+        
+        parameters = base_model.free_parameters
+
+    with h5py.File(file_name, 'w', libver='latest') as database:
+
+        # first we collect the real data data and save it so that we will not have to
+        # look it up in the future
+
+        data_names = []
+
+        database.attrs['n_sims'] = n_sims
+
+        for data in analysis.data_list.values():
+
+            data_names.append(data.name)
+            grp = database.create_group(data.name)
+            grp.attrs['exposure'] = data.exposure
+            grp.attrs['scale_factor'] = data.scale_factor
+            grp.create_dataset(
+                'ebounds', data=data.response.ebounds, compression='gzip')
+            grp.create_dataset(
+                'obs_counts', data=data.observed_counts, compression='gzip')
+            grp.create_dataset(
+                'bkg_counts', data=data.background_counts, compression='gzip')
+            grp.create_dataset('mask', data=data.mask, compression='gzip')
+
+        # select random draws from the posterior
+
+        # for each posterior sample
+
+
+
+
+        with silence_console_log(and_progress_bars=False):
+
+            for j in range(n_sims):
+        
+                # set new parameters
+
+                for name, param in analysis.likelihood_model.free_parameters.items():
+
+                    if name in parameters:
+
+                        # get a value
+                        new_value = base_model.free_parameters[name].prior.from_unit_cube(np.random.rand())
+
+                        param.value = new_value
+
+
+                # collect the observed counts
+
+                for k, v in zip(analysis.data_list.keys(), analysis.data_list.values()):
+
+                    # store the PPC data in the file
+                    grp = database[k]
+
+                    grp.create_dataset('ppc_counts_%d' %
+                                       j, data=data.get_model(), compression='gzip')
+                    grp.create_dataset('ppc_background_counts_%d' %
+                                       j, data=data.background_counts, compression='gzip')
+            # sim_dls.append(sim_dl)
+        if return_ppc:
+
+            return PPC(file_name)
+
+        
 
 class PPC(object):
 

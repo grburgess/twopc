@@ -1,4 +1,4 @@
-from .ppc import PPCDetector, compute_ppc, PPC
+from .ppc import PPCDetector, compute_postpc, compute_priorpc,PPC
 
 
 from ._version import get_versions
