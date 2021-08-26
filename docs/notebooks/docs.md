@@ -5,8 +5,8 @@ jupyter:
     text_representation:
       extension: .md
       format_name: markdown
-      format_version: '1.2'
-      jupytext_version: 1.7.1
+      format_version: '1.3'
+      jupytext_version: 1.11.2
   kernelspec:
     display_name: Python 3
     language: python
@@ -81,9 +81,9 @@ spectrum_generator = DispersionSpectrumLike.from_function(
 fig = spectrum_generator.view_count_spectrum()
 ```
 
-## Fit the data 
+## Compute the prior predictive checks
 
-We will quickly fit the data via Bayesian posterior sampling... After all you need a posterior to do posterior predictive checks!
+Before fitting our data, we can compute the data we would get from our prior
 
 
 ```python
@@ -98,6 +98,25 @@ model = Model(ps)
 ```python
 ba = BayesianAnalysis(model, DataList(spectrum_generator))
 ```
+
+```python
+from twopc import compute_priorpc
+```
+
+```python
+ppc = compute_priorpc(ba,
+                n_sims=1000, 
+                  file_name="my_ppc.h5",
+                  overwrite=True,
+                  return_ppc=True)
+
+fig = ppc.fake.plot(bkg_subtract=True,colors=["#FF1919","#CC0000","#7F0000"]);
+```
+
+## Fit the data 
+
+We will quickly fit the data via Bayesian posterior sampling... After all you need a posterior to do posterior predictive checks!
+
 
 ```python
 ba.set_sampler("emcee")
@@ -123,7 +142,7 @@ _ = ax.set_ylim(1e-3)
 ```
 
 <!-- #region -->
-## Compute the PPCs
+## Compute the posterior predictive checks
 
 We want to check the validiity of the fit via posterior predicitive checks (PPCs).
 Essentially:
@@ -136,11 +155,11 @@ So, we will randomly sample the posterior, fold those point of the posterior mod
 <!-- #endregion -->
 
 ```python
-from twopc import compute_ppc
+from twopc import compute_postpc
 ```
 
 ```python
-ppc = compute_ppc(ba,
+ppc = compute_postpc(ba,
                   ba.results,
                   n_sims=1000, 
                   file_name="my_ppc.h5",
