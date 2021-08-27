@@ -1,5 +1,5 @@
 ![CI](https://github.com/grburgess/twopc/workflows/CI/badge.svg)
-[![Documentation Status](https://readthedocs.org/projects/twopc/badge/?version=latest)](https://twopc.readthedocs.io/en/latest/?badge=latest)
+[![Docs](https://github.com/grburgess/twopc/actions/workflows/docs.yml/badge.svg)](https://jmichaelburgess.com/twopc/)
 # twopc (PPC) (2 * P +C)
 ![alt text](https://raw.githubusercontent.com/grburgess/twopc/master/docs/media/logo.png)
 
