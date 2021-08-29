@@ -53,17 +53,18 @@ def compute_postpc(analysis: BayesianAnalysis,
 
         for data in analysis.data_list.values():
 
-            data_names.append(data.name)
-            grp = database.create_group(data.name)
-            grp.attrs['exposure'] = data.exposure
-            grp.attrs['scale_factor'] = data.scale_factor
-            grp.create_dataset(
-                'ebounds', data=data.response.ebounds, compression='lzf')
-            grp.create_dataset(
-                'obs_counts', data=data.observed_counts, compression='lzf')
-            grp.create_dataset(
-                'bkg_counts', data=data.background_counts, compression='lzf')
-            grp.create_dataset('mask', data=data.mask, compression='lzf')
+            with data._without_mask_nor_rebinner():
+                data_names.append(data.name)
+                grp = database.create_group(data.name)
+                grp.attrs['exposure'] = data.exposure
+                grp.attrs['scale_factor'] = data.scale_factor
+                grp.create_dataset(
+                    'ebounds', data=data.response.ebounds, compression='lzf')
+                grp.create_dataset(
+                    'obs_counts', data=data.observed_counts, compression='lzf')
+                grp.create_dataset(
+                    'bkg_counts', data=data.background_counts, compression='lzf')
+                grp.create_dataset('mask', data=data.mask, compression='lzf')
 
         # select random draws from the posterior
 
@@ -173,17 +174,19 @@ def compute_priorpc(analysis: BayesianAnalysis,
 
         for data in analysis.data_list.values():
 
-            data_names.append(data.name)
-            grp = database.create_group(data.name)
-            grp.attrs['exposure'] = data.exposure
-            grp.attrs['scale_factor'] = data.scale_factor
-            grp.create_dataset(
-                'ebounds', data=data.response.ebounds, compression='gzip')
-            grp.create_dataset(
-                'obs_counts', data=data.observed_counts, compression='gzip')
-            grp.create_dataset(
-                'bkg_counts', data=data.background_counts, compression='gzip')
-            grp.create_dataset('mask', data=data.mask, compression='gzip')
+            with data._without_mask_nor_rebinner():
+                
+                data_names.append(data.name)
+                grp = database.create_group(data.name)
+                grp.attrs['exposure'] = data.exposure
+                grp.attrs['scale_factor'] = data.scale_factor
+                grp.create_dataset(
+                    'ebounds', data=data.response.ebounds, compression='gzip')
+                grp.create_dataset(
+                    'obs_counts', data=data.observed_counts, compression='gzip')
+                grp.create_dataset(
+                    'bkg_counts', data=data.background_counts, compression='gzip')
+                grp.create_dataset('mask', data=data.mask, compression='gzip')
 
         # select random draws from the posterior
 
@@ -215,10 +218,12 @@ def compute_priorpc(analysis: BayesianAnalysis,
                     # store the PPC data in the file
                     grp = database[k]
 
-                    grp.create_dataset('ppc_counts_%d' %
-                                       j, data=data.get_model(), compression='gzip')
-                    grp.create_dataset('ppc_background_counts_%d' %
-                                       j, data=data.background_counts, compression='gzip')
+                    with data._without_mask_nor_rebinner():
+                        
+                        grp.create_dataset('ppc_counts_%d' %
+                                           j, data=data.get_model(), compression='gzip')
+                        grp.create_dataset('ppc_background_counts_%d' %
+                                           j, data=data.background_counts, compression='gzip')
             # sim_dls.append(sim_dl)
         if return_ppc:
 
