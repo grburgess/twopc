@@ -211,6 +211,12 @@
 
         <span class="n">database</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;n_sims&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">n_sims</span>
 
+        <span class="c1"># store the previous model</span>
+        
+        <span class="n">previous_model</span> <span class="o">=</span> <span class="n">clone_model</span><span class="p">(</span><span class="n">analysis</span><span class="o">.</span><span class="n">likelihood_model</span><span class="p">)</span>
+
+        <span class="n">model_from_results</span> <span class="o">=</span> <span class="n">clone_model</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">optimized_model</span><span class="p">)</span>
+        
         <span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">analysis</span><span class="o">.</span><span class="n">data_list</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
 
             <span class="k">with</span> <span class="n">data</span><span class="o">.</span><span class="n">_without_mask_nor_rebinner</span><span class="p">():</span>
@@ -226,6 +232,10 @@
                     <span class="s1">&#39;bkg_counts&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">background_counts</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="s1">&#39;lzf&#39;</span><span class="p">)</span>
                 <span class="n">grp</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s1">&#39;mask&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">mask</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="s1">&#39;lzf&#39;</span><span class="p">)</span>
 
+            <span class="c1"># make sure we are on the right model</span>
+            
+            <span class="n">data</span><span class="o">.</span><span class="n">set_model</span><span class="p">(</span><span class="n">model_from_results</span><span class="p">)</span>
+
         <span class="c1"># select random draws from the posterior</span>
 
         <span class="n">n_samples</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">samples</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
@@ -240,7 +250,7 @@
             <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">samples</span><span class="o">.</span><span class="n">T</span><span class="p">),</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">n_sims</span><span class="p">)</span>
 
         <span class="c1"># for each posterior sample</span>
-
+        
         <span class="k">with</span> <span class="n">silence_console_log</span><span class="p">(</span><span class="n">and_progress_bars</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 
             <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">choice</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tqdm</span><span class="p">(</span><span class="n">choices</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;sampling posterior&quot;</span><span class="p">)):</span>
@@ -264,11 +274,6 @@
                 <span class="c1"># set the model of the simulated data to the model of the simulation</span>
                 <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sim_dl</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
 
-                    <span class="c1"># clone the model for saftey&#39;s sake</span>
-                    <span class="c1"># and set the model. For now we do nothing with this</span>
-
-                    <span class="n">data</span><span class="o">.</span><span class="n">set_model</span><span class="p">(</span><span class="n">clone_model</span><span class="p">(</span><span class="n">analysis</span><span class="o">.</span><span class="n">likelihood_model</span><span class="p">))</span>
-
                     <span class="c1"># store the PPC data in the file</span>
                     <span class="n">grp</span> <span class="o">=</span> <span class="n">database</span><span class="p">[</span><span class="n">data_names</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
                     <span class="n">grp</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s1">&#39;ppc_counts_</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span>
@@ -276,6 +281,14 @@
                     <span class="n">grp</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s1">&#39;ppc_background_counts_</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span>
                                        <span class="n">j</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">background_counts</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="s1">&#39;lzf&#39;</span><span class="p">)</span>
                 <span class="c1"># sim_dls.append(sim_dl)</span>
+
+        <span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">analysis</span><span class="o">.</span><span class="n">data_list</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+
+            <span class="n">data</span><span class="o">.</span><span class="n">set_model</span><span class="p">(</span><span class="n">previous_model</span><span class="p">)</span>
+
+            
+
+                
         <span class="k">if</span> <span class="n">return_ppc</span><span class="p">:</span>
 
             <span class="k">return</span> <span class="n">PPC</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span></div>
@@ -357,7 +370,7 @@
 
         <span class="k">with</span> <span class="n">silence_console_log</span><span class="p">(</span><span class="n">and_progress_bars</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 
-            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_sims</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n_sims</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;sampling prior&quot;</span><span class="p">):</span>
         
                 <span class="c1"># set new parameters</span>
 
