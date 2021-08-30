@@ -55,7 +55,7 @@ def compute_postpc(analysis: BayesianAnalysis,
         
         previous_model = clone_model(analysis.likelihood_model)
 
-        model_from_results = clone_model(results.optimized_model)
+        model_from_results = clone_model(result.optimized_model)
         
         for data in analysis.data_list.values():
 
