@@ -51,6 +51,12 @@ def compute_postpc(analysis: BayesianAnalysis,
 
         database.attrs['n_sims'] = n_sims
 
+        # store the previous model
+        
+        previous_model = clone_model(analysis.likelihood_model)
+
+        model_from_results = clone_model(results.optimized_model)
+        
         for data in analysis.data_list.values():
 
             with data._without_mask_nor_rebinner():
@@ -66,6 +72,10 @@ def compute_postpc(analysis: BayesianAnalysis,
                     'bkg_counts', data=data.background_counts, compression='lzf')
                 grp.create_dataset('mask', data=data.mask, compression='lzf')
 
+            # make sure we are on the right model
+            
+            data.set_model(model_from_results)
+
         # select random draws from the posterior
 
         n_samples = len(result.samples.T)
@@ -80,7 +90,7 @@ def compute_postpc(analysis: BayesianAnalysis,
             len(result.samples.T), replace=False, size=n_sims)
 
         # for each posterior sample
-
+        
         with silence_console_log(and_progress_bars=False):
 
             for j, choice in enumerate(tqdm(choices, desc="sampling posterior")):
@@ -104,11 +114,6 @@ def compute_postpc(analysis: BayesianAnalysis,
                 # set the model of the simulated data to the model of the simulation
                 for i, data in enumerate(sim_dl.values()):
 
-                    # clone the model for saftey's sake
-                    # and set the model. For now we do nothing with this
-
-                    data.set_model(clone_model(analysis.likelihood_model))
-
                     # store the PPC data in the file
                     grp = database[data_names[i]]
                     grp.create_dataset('ppc_counts_%d' %
@@ -116,6 +121,14 @@ def compute_postpc(analysis: BayesianAnalysis,
                     grp.create_dataset('ppc_background_counts_%d' %
                                        j, data=data.background_counts, compression='lzf')
                 # sim_dls.append(sim_dl)
+
+        for data in analysis.data_list.values():
+
+            data.set_model(previous_model)
+
+            
+
+                
         if return_ppc:
 
             return PPC(file_name)
@@ -197,7 +210,7 @@ def compute_priorpc(analysis: BayesianAnalysis,
 
         with silence_console_log(and_progress_bars=False):
 
-            for j in range(n_sims):
+            for j in tqdm(range(n_sims), desc="sampling prior"):
         
                 # set new parameters
 
