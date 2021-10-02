@@ -103,7 +103,7 @@ def compute_postpc(analysis: BayesianAnalysis,
 
                 # set the analysis free parameters to the value of the posterior
 
-                model_from_results.set_parameters(params)
+                model_from_results.set_free_parameters(params)
 
                 # create simulated data sets with these free parameters
                 sim_dl = DataList(*[data.get_simulated_dataset()
