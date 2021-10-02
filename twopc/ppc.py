@@ -70,7 +70,8 @@ def compute_postpc(analysis: BayesianAnalysis,
                     'obs_counts', data=data.observed_counts, compression='lzf')
                 grp.create_dataset(
                     'bkg_counts', data=data.background_counts, compression='lzf')
-                grp.create_dataset('mask', data=data.mask, compression='lzf')
+
+            grp.create_dataset('mask', data=data.mask, compression='lzf')
 
             # make sure we are on the right model
             
@@ -102,10 +103,7 @@ def compute_postpc(analysis: BayesianAnalysis,
 
                 # set the analysis free parameters to the value of the posterior
 
-                analysis.likelihood_model.set_free_parameters(params)
-
-                # for i, (k, v) in enumerate(analysis.likelihood_model.free_parameters.items()):
-                #     v.value = params[i]
+                model_from_results.set_parameters(params)
 
                 # create simulated data sets with these free parameters
                 sim_dl = DataList(*[data.get_simulated_dataset()
@@ -644,6 +642,7 @@ class PPCDetector(object):
                 self._channel_width / self._exposure
 
         else:
+
             true_rate = self._obs_counts / self._channel_width / self._exposure
 
         # colors = [light,mid,dark]
