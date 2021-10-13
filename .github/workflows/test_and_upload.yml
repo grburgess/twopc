@@ -40,13 +40,20 @@ jobs:
             - name: Install dependencies
               run: |
                   python -m pip install --upgrade pip
-                  pip install --upgrade astromodels
-                  git clone https://github.com/threeML/threeML
+                  
+                  git clone --branch dev https://github.com/threeML/astromodels
+                  cd astromodels
+                  python setup.py install
+                  cd ../
+                  
+                  git clone --branch dev https://github.com/threeML/threeML
                   cd threeML
                   python setup.py install
                   cd ../
+                  
                   pip install --upgrade flake8 coverage pytest-cov cython
                   pip install -e .
+                  
             - name: Lint with flake8
               run: |
                   # stop the build if there are Python syntax errors or undefined names
