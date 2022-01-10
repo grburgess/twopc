@@ -41,7 +41,7 @@ def compute_postpc(
 
     if file_name is None:
 
-        file_name = f"/tmp/_tmp_{np.random.randint()}_{np.random.randint()}_{np.random.randint()}"
+        file_name = f"/tmp/_tmp_{np.random.randint(100)}_{np.random.randint(100)}_{np.random.randint(100)}"
 
     p = Path(file_name)
 
@@ -103,7 +103,7 @@ def compute_postpc(
 
         # select random draws from the posterior
 
-        n_samples = len()
+        n_samples: int = len(samples)
 
         if n_samples < n_sims:
 
