@@ -4,7 +4,7 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 import h5py
 import matplotlib.pyplot as plt
 import numpy as np
-from astromodels import clone_model
+from astromodels import clone_model, Model
 from threeML import BayesianAnalysis, DataList
 from threeML.analysis_results import BayesianResults
 from threeML.io.logging import silence_console_log, update_logging_level
@@ -13,11 +13,13 @@ from threeML.utils.progress_bar import tqdm
 
 def compute_postpc(
     analysis: BayesianAnalysis,
-    result: BayesianResults,
-    n_sims: int,
-    file_name: str,
+    result: Optional[BayesianResults] = None,
+    n_sims: int = 100,
+    file_name: Optional[str] = None,
     overwrite: bool = False,
     return_ppc: bool = False,
+    direct_samples: Optional[np.ndarray] = None,
+    direct_model: Optional[Model] = None,
 ) -> Union["PPC", None]:
     """
     Compute a posterior predictive check from a 3ML DispersionLike
@@ -36,6 +38,10 @@ def compute_postpc(
     """
 
     update_logging_level("WARNING")
+
+    if file_name is None:
+
+        file_name = f"/tmp/_tmp_{np.random.randint()}_{np.random.randint()}_{np.random.randint()}"
 
     p = Path(file_name)
 
@@ -56,7 +62,21 @@ def compute_postpc(
 
         previous_model = clone_model(analysis.likelihood_model)
 
-        model_from_results = clone_model(result.optimized_model)
+
+        # here we will simulate from the model directly
+        if direct_samples is not None:
+
+            assert direct_model is not None
+
+            model_from_results = clone_model(direct_model)
+
+            samples = direct_samples
+
+        else:
+
+            model_from_results = clone_model(result.optimized_model)
+
+            samples = results.samples.T
 
         for data in analysis.data_list.values():
 
@@ -83,7 +103,7 @@ def compute_postpc(
 
         # select random draws from the posterior
 
-        n_samples = len(result.samples.T)
+        n_samples = len()
 
         if n_samples < n_sims:
 
@@ -91,9 +111,7 @@ def compute_postpc(
 
             n_sims = n_samples
 
-        choices = np.random.choice(
-            len(result.samples.T), replace=False, size=n_sims
-        )
+        choices = np.random.choice(n_samples, replace=False, size=n_sims)
 
         # for each posterior sample
 
@@ -105,7 +123,7 @@ def compute_postpc(
 
                 # get the parameters of the choice
 
-                params = result.samples.T[choice]
+                params = samples[choice]
 
                 # set the analysis free parameters to the value of the posterior
 
