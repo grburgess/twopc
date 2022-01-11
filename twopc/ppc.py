@@ -9,7 +9,7 @@ from threeML import BayesianAnalysis, DataList
 from threeML.analysis_results import BayesianResults
 from threeML.io.logging import silence_console_log, update_logging_level
 from threeML.utils.progress_bar import tqdm
-
+from threeML.utils.binner import Rebinner
 
 def compute_postpc(
     analysis: BayesianAnalysis,
@@ -656,6 +656,7 @@ class PPCDetector(object):
         colors: List[str] = ["#ABB2B9", "#566573", "#17202A"],
         lc: str = "#FFD100",
         lw: float = 0.9,
+        min_rate: Optional[float] = None,
         **kwargs,
     ):
         """FIXME! briefly describe function
@@ -748,40 +749,70 @@ class PPCDetector(object):
 
             true_rate = self._obs_counts / self._channel_width / self._exposure
 
-        # colors = [light,mid,dark]
+
+        if min_rate is not None:
+
+            rebinner: Optional[Rebinner] = Rebinner(true_rate, min_rate, self._mask)
+
+            obs_rate, = rebinner.rebin(true_rate)
+
+            start = self._ebounds[:-1]
+            stop = self._ebounds[1:]
+
+            new_start, new_stop = rebinner.get_new_start_and_stop(start, stop)
+
+            ebounds = np.append(new_start, new_stop[-1])
+
+            mask = np.ones(rebinner.n_bins, dtype=bool)
+
+
+        else:
+
+            obs_rate = true_rate
+
+            rebinner = None
+
+            ebounds = self._ebounds
+            mask = self._mask
+        
 
         for j, (lo, hi) in enumerate(zip(ppc_low, ppc_high)):
 
-            for i in range(len(self._ebounds) - 1):
-                if self._mask[i]:
+            if rebinner is not None:
+
+                lo, hi = rebinner.rebin(lo, hi)
+
+
+            for i in range(len(ebounds) - 1):
+                if mask[i]:
 
                     ax.fill_between(
-                        [self._ebounds[i], self._ebounds[i + 1]],
+                        [ebounds[i], ebounds[i + 1]],
                         lo[i],
                         hi[i],
                         color=colors[j],
                     )
 
-        n_chan = len(self._ebounds) - 1
+        n_chan = len(ebounds) - 1
 
-        for i in range(len(self._ebounds) - 1):
-            if self._mask[i]:
+        for i in range(len(ebounds) - 1):
+            if mask[i]:
 
                 ax.hlines(
-                    true_rate[i],
-                    self._ebounds[i],
-                    self._ebounds[i + 1],
+                    obs_rate[i],
+                    ebounds[i],
+                    ebounds[i + 1],
                     color=lc,
                     lw=lw,
                 )
 
                 if i < n_chan - 1:
-                    if self._mask[i + 1]:
+                    if mask[i + 1]:
 
                         ax.vlines(
-                            self._ebounds[i + 1],
-                            true_rate[i],
-                            true_rate[i + 1],
+                            ebounds[i + 1],
+                            obs_rate[i],
+                            obs_rate[i + 1],
                             color=lc,
                             lw=lw,
                         )
