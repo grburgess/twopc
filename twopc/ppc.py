@@ -289,7 +289,7 @@ def compute_priorpc(
             return PPC(file_name)
 
 
-class PPC(object):
+class PPC:
     def __init__(self, file_name: str):
         """
                 Reads a PPC HDF5 created by compute_ppc. This applies to DispersionLike
@@ -370,7 +370,7 @@ class PPC(object):
         return self._det_list
 
 
-class PPCDetector(object):
+class PPCDetector:
     def __init__(
         self,
         name: str,
