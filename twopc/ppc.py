@@ -76,7 +76,7 @@ def compute_postpc(
 
             model_from_results = clone_model(result.optimized_model)
 
-            samples = results.samples.T
+            samples = result.samples.T
 
         for data in analysis.data_list.values():
 
